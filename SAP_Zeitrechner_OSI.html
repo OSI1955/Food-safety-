@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SAP Zeitrechner – OSI Günzburg</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --sans: 'IBM Plex Sans', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+
+  /* Summer – amber/orange */
+  --summer:       #B45309;
+  --summer-dark:  #92400E;
+  --summer-light: #FFFBEB;
+  --summer-mid:   #FCD34D;
+  --summer-btn:   #D97706;
+
+  /* Winter – blue */
+  --winter:       #1D4ED8;
+  --winter-dark:  #1E3A8A;
+  --winter-light: #EFF6FF;
+  --winter-mid:   #93C5FD;
+  --winter-btn:   #2563EB;
+
+  /* Neutrals */
+  --bg:           #F4F5F7;
+  --surface:      #FFFFFF;
+  --border:       #E0E4EC;
+  --border-strong:#B8C0D0;
+  --text:         #1A1E2E;
+  --muted:        #6B7A99;
+
+  /* Active season (set by JS) */
+  --s:            #1D4ED8;
+  --s-dark:       #1E3A8A;
+  --s-light:      #EFF6FF;
+  --s-mid:        #93C5FD;
+  --s-btn:        #2563EB;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 460px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--surface);
+  border-bottom: 3px solid var(--s);
+  padding: 16px 20px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.header-left h1 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.header-left p {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+  margin-top: 2px;
+}
+
+.osi-logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* ── BODY ── */
+.body {
+  flex: 1;
+  padding: 16px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── SEASON CARD ── */
+.season-card {
+  border-radius: 12px;
+  border: 2px solid var(--s-mid);
+  background: var(--s-light);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.season-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.season-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.season-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--s);
+  transition: color 0.3s;
+}
+
+.season-period {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.offset-badge {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--s);
+  color: white;
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+
+/* ── LIVE CLOCK ── */
+.clock-card {
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.clock-row {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  background: var(--s);
+  padding: 14px 0 12px;
+  transition: background 0.3s;
+}
+
+.clock-sep { background: rgba(255,255,255,0.25); margin: 0 2px; }
+
+.clock-col { text-align: center; }
+
+.clock-lbl {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: rgba(255,255,255,0.65);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 3px;
+}
+
+.clock-time {
+  font-size: 28px;
+  font-family: var(--mono);
+  font-weight: 600;
+  color: white;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.clock-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.clock-date-cell {
+  text-align: center;
+  padding: 7px 4px;
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--muted);
+}
+
+.clock-date-cell:first-child { border-right: 1px solid var(--border); }
+
+/* ── CONVERTER CARD ── */
+.card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.card-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1.5px solid var(--border);
+}
+
+.conv-tab {
+  padding: 11px 8px;
+  text-align: center;
+  font-size: 12px;
+  font-family: var(--mono);
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: all 0.15s;
+}
+
+.conv-tab:first-child { border-right: 1px solid var(--border); }
+.conv-tab.active { background: var(--s); color: white; transition: background 0.3s; }
+
+.card-body { padding: 18px 16px; }
+
+.field-label {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.date-wrap { margin-bottom: 12px; }
+
+.date-wrap input[type="date"] {
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+
+.date-wrap input[type="date"]:focus { border-color: var(--s); }
+
+.time-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.time-field { flex: 1; }
+
+.time-field input {
+  width: 100%;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 30px;
+  font-weight: 600;
+  padding: 10px 6px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+
+.time-field input:focus { border-color: var(--s); }
+
+.time-sep {
+  font-family: var(--mono);
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.steppers {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.step-btn {
+  padding: 8px 4px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.12s;
+  text-align: center;
+}
+
+.step-btn:hover { border-color: var(--s); color: var(--s); background: var(--s-light); }
+.step-btn:active { transform: scale(0.97); }
+
+.convert-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: 8px;
+  border: none;
+  background: var(--s);
+  color: white;
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+  letter-spacing: 0.03em;
+}
+
+.convert-btn:hover { background: var(--s-dark); }
+.convert-btn:active { transform: scale(0.99); }
+
+/* Result */
+.result-box {
+  margin-top: 14px;
+  border-radius: 10px;
+  border: 2px solid var(--s-mid);
+  background: var(--s-light);
+  padding: 16px;
+  display: none;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.result-box.show { display: block; }
+
+.result-lbl {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--s);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 4px;
+}
+
+.result-time {
+  font-size: 44px;
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--s);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.result-date {
+  font-size: 14px;
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--s);
+  margin-top: 4px;
+  margin-bottom: 10px;
+}
+
+.result-formula {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--muted);
+  padding-top: 10px;
+  border-top: 1px solid var(--s-mid);
+}
+
+.date-warn {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #FEF2F2;
+  border: 1.5px solid #EF4444;
+  font-size: 12px;
+  font-family: var(--mono);
+  color: #DC2626;
+  font-weight: 600;
+  display: none;
+}
+
+.date-warn.show { display: block; }
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 10px 16px 16px;
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--muted);
+  line-height: 1.7;
+  border-top: 1px solid var(--border);
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type=number] { -moz-appearance: textfield; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <h1>SAP Zeitrechner</h1>
+      <p>Werk 2005 Günzburg &middot; QM-Abteilung</p>
+    </div>
+    <img class="osi-logo"
+         src="https://osi1955.github.io/Food-safety-/osi-group-logo-vector.png"
+         alt="OSI"
+         onerror="this.style.display='none'">
+  </div>
+
+  <div class="body">
+
+    <!-- SEASON CARD -->
+    <div class="season-card" id="season-card">
+      <div class="season-left">
+        <!-- Icon injected by JS -->
+        <div id="season-icon"></div>
+        <div>
+          <div class="season-name" id="s-name">--</div>
+          <div class="season-period" id="s-period">--</div>
+        </div>
+      </div>
+      <div class="offset-badge" id="s-badge">UTC+?</div>
+    </div>
+
+    <!-- LIVE CLOCK -->
+    <div class="clock-card">
+      <div class="clock-row" id="clock-row">
+        <div class="clock-col">
+          <div class="clock-lbl">Ortszeit</div>
+          <div class="clock-time" id="local-time">--:--:--</div>
+        </div>
+        <div class="clock-sep"></div>
+        <div class="clock-col">
+          <div class="clock-lbl">SAP (UTC)</div>
+          <div class="clock-time" id="utc-time">--:--:--</div>
+        </div>
+      </div>
+      <div class="clock-dates">
+        <div class="clock-date-cell" id="local-date">--</div>
+        <div class="clock-date-cell" id="utc-date">--</div>
+      </div>
+    </div>
+
+    <!-- CONVERTER -->
+    <div class="card">
+      <div class="card-tabs">
+        <button class="conv-tab active" id="tab-local" onclick="setDir('local')">Ortszeit &rarr; SAP</button>
+        <button class="conv-tab" id="tab-sap" onclick="setDir('sap')">SAP &rarr; Ortszeit</button>
+      </div>
+      <div class="card-body">
+
+        <div class="date-wrap">
+          <span class="field-label" id="date-lbl">Datum (Ortszeit)</span>
+          <input type="date" id="input-date" onchange="autoConvert()">
+        </div>
+
+        <span class="field-label" id="time-lbl">Uhrzeit eingeben</span>
+        <div class="time-inputs">
+          <div class="time-field">
+            <input type="number" id="input-h" min="0" max="23" placeholder="HH"
+              oninput="clampH(this)" onchange="autoConvert()">
+          </div>
+          <div class="time-sep">:</div>
+          <div class="time-field">
+            <input type="number" id="input-m" min="0" max="59" placeholder="MM"
+              oninput="clampM(this)" onchange="autoConvert()">
+          </div>
+        </div>
+
+        <div class="steppers">
+          <button class="step-btn" onclick="step('h',-1)">H &minus;1</button>
+          <button class="step-btn" onclick="step('h', 1)">H +1</button>
+          <button class="step-btn" onclick="step('m',-15)">M &minus;15</button>
+          <button class="step-btn" onclick="step('m', 15)">M +15</button>
+        </div>
+
+        <button class="convert-btn" id="conv-btn" onclick="convert()">Umrechnen</button>
+
+        <div class="result-box" id="result-box">
+          <div class="result-lbl" id="result-lbl">SAP-Zeit (UTC)</div>
+          <div class="result-time" id="result-time">--:--</div>
+          <div class="result-date" id="result-date"></div>
+          <div class="result-formula" id="result-formula"></div>
+          <div class="date-warn" id="date-warn"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer" id="footer"></div>
+
+</div>
+
+<script>
+// ── PRECISE DST CALCULATION ──────────────────────────────────────
+function lastSunday(year, month) { // month 0-indexed
+  const d = new Date(year, month + 1, 0);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+
+function getOffset(date) {
+  const y = date.getFullYear();
+  const spring = lastSunday(y, 2); spring.setHours(2,0,0,0); // CEST starts
+  const fall   = lastSunday(y, 9); fall.setHours(3,0,0,0);   // CET starts
+  return (date >= spring && date < fall) ? 2 : 1;
+}
+
+// ── SVG ICONS ───────────────────────────────────────────────────
+const SUN_SVG = `<svg class="season-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="20" cy="20" r="8" fill="#D97706" opacity="0.9"/>
+  <g stroke="#D97706" stroke-width="2.2" stroke-linecap="round" opacity="0.7">
+    <line x1="20" y1="4"  x2="20" y2="8"/>
+    <line x1="20" y1="32" x2="20" y2="36"/>
+    <line x1="4"  y1="20" x2="8"  y2="20"/>
+    <line x1="32" y1="20" x2="36" y2="20"/>
+    <line x1="8.5"  y1="8.5"  x2="11.5" y2="11.5"/>
+    <line x1="28.5" y1="28.5" x2="31.5" y2="31.5"/>
+    <line x1="31.5" y1="8.5"  x2="28.5" y2="11.5"/>
+    <line x1="11.5" y1="28.5" x2="8.5"  y2="31.5"/>
+  </g>
+</svg>`;
+
+const SNOW_SVG = `<svg class="season-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="#1D4ED8" stroke-width="2.2" stroke-linecap="round" opacity="0.85">
+    <line x1="20" y1="4"  x2="20" y2="36"/>
+    <line x1="4"  y1="20" x2="36" y2="20"/>
+    <line x1="7"  y1="7"  x2="33" y2="33"/>
+    <line x1="33" y1="7"  x2="7"  y2="33"/>
+    <!-- branch tips -->
+    <line x1="20" y1="4"  x2="16" y2="8"/><line x1="20" y1="4"  x2="24" y2="8"/>
+    <line x1="20" y1="36" x2="16" y2="32"/><line x1="20" y1="36" x2="24" y2="32"/>
+    <line x1="4"  y1="20" x2="8"  y2="16"/><line x1="4"  y1="20" x2="8"  y2="24"/>
+    <line x1="36" y1="20" x2="32" y2="16"/><line x1="36" y1="20" x2="32" y2="24"/>
+  </g>
+  <circle cx="20" cy="20" r="3" fill="#1D4ED8" opacity="0.9"/>
+</svg>`;
+
+// ── STATE ────────────────────────────────────────────────────────
+let dir = 'local';
+let offset = 2;
+let isSummer = true;
+
+function pad(n) { return String(n).padStart(2,'0'); }
+
+function todayISO() {
+  const n = new Date();
+  return n.getFullYear() + '-' + pad(n.getMonth()+1) + '-' + pad(n.getDate());
+}
+
+const DAYS = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+function fmtDate(d) {
+  return DAYS[d.getDay()] + ', ' + pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.' + d.getFullYear();
+}
+function fmtDateUTC(d) {
+  return DAYS[d.getUTCDay()] + ', ' + pad(d.getUTCDate()) + '.' + pad(d.getUTCMonth()+1) + '.' + d.getUTCFullYear();
+}
+
+// ── APPLY SEASON THEME ───────────────────────────────────────────
+function applyTheme() {
+  const root = document.documentElement;
+  if (isSummer) {
+    root.style.setProperty('--s',       'var(--summer)');
+    root.style.setProperty('--s-dark',  'var(--summer-dark)');
+    root.style.setProperty('--s-light', 'var(--summer-light)');
+    root.style.setProperty('--s-mid',   'var(--summer-mid)');
+    root.style.setProperty('--s-btn',   'var(--summer-btn)');
+  } else {
+    root.style.setProperty('--s',       'var(--winter)');
+    root.style.setProperty('--s-dark',  'var(--winter-dark)');
+    root.style.setProperty('--s-light', 'var(--winter-light)');
+    root.style.setProperty('--s-mid',   'var(--winter-mid)');
+    root.style.setProperty('--s-btn',   'var(--winter-btn)');
+  }
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+function init() {
+  const now = new Date();
+  offset = getOffset(now);
+  isSummer = offset === 2;
+  applyTheme();
+
+  // Season card
+  document.getElementById('season-icon').innerHTML = isSummer ? SUN_SVG : SNOW_SVG;
+  document.getElementById('s-name').textContent =
+    isSummer ? 'Sommerzeit (MESZ)' : 'Winterzeit (MEZ)';
+  document.getElementById('s-period').textContent =
+    isSummer
+      ? 'Letzter So. März – letzter So. Oktober'
+      : 'Letzter So. Oktober – letzter So. März';
+  document.getElementById('s-badge').textContent = 'UTC+' + offset;
+
+  // Pre-fill date
+  document.getElementById('input-date').value = todayISO();
+
+  // Footer
+  document.getElementById('footer').textContent =
+    'OSI Food Solutions GmbH · QM Werk 2005 · ' +
+    (isSummer
+      ? 'MESZ (UTC+2): letzter So. März – letzter So. Okt.'
+      : 'MEZ (UTC+1): letzter So. Okt. – letzter So. März');
+
+  updateClock();
+  setInterval(updateClock, 1000);
+}
+
+// ── CLOCK ────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('local-time').textContent =
+    pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+  document.getElementById('utc-time').textContent =
+    pad(now.getUTCHours())+':'+pad(now.getUTCMinutes())+':'+pad(now.getUTCSeconds());
+  document.getElementById('local-date').textContent = fmtDate(now);
+  document.getElementById('utc-date').textContent = 'UTC · ' + fmtDateUTC(now);
+}
+
+// ── DIRECTION ────────────────────────────────────────────────────
+function setDir(d) {
+  dir = d;
+  document.getElementById('tab-local').className = 'conv-tab' + (d==='local'?' active':'');
+  document.getElementById('tab-sap').className   = 'conv-tab' + (d==='sap'  ?' active':'');
+  document.getElementById('date-lbl').textContent = d==='local' ? 'Datum (Ortszeit)' : 'Datum (SAP / UTC)';
+  document.getElementById('time-lbl').textContent = d==='local' ? 'Ortszeit eingeben' : 'SAP-Zeit (UTC) eingeben';
+  document.getElementById('result-lbl').textContent = d==='local' ? 'SAP-Zeit (UTC)' : 'Ortszeit Günzburg';
+  document.getElementById('result-box').className = 'result-box';
+  document.getElementById('input-h').value = '';
+  document.getElementById('input-m').value = '';
+  document.getElementById('input-date').value = todayISO();
+}
+
+// ── INPUT HELPERS ────────────────────────────────────────────────
+function clampH(el) { let v=parseInt(el.value); if(!isNaN(v)) el.value=Math.max(0,Math.min(23,v)); }
+function clampM(el) { let v=parseInt(el.value); if(!isNaN(v)) el.value=Math.max(0,Math.min(59,v)); }
+
+function step(field, delta) {
+  const el = document.getElementById('input-' + field);
+  let v = parseInt(el.value) || 0;
+  if (field==='h') { v=((v+delta)+24)%24; }
+  else { v+=delta; if(v<0)v=45; if(v>59)v=0; }
+  el.value = pad(v);
+  autoConvert();
+}
+
+function autoConvert() {
+  const h=document.getElementById('input-h').value;
+  const m=document.getElementById('input-m').value;
+  const dt=document.getElementById('input-date').value;
+  if(h!==''&&m!==''&&dt) convert();
+}
+
+// ── CONVERSION ───────────────────────────────────────────────────
+function convert() {
+  const dateVal = document.getElementById('input-date').value;
+  const hRaw    = document.getElementById('input-h').value;
+  const mRaw    = document.getElementById('input-m').value;
+
+  if (!dateVal||hRaw===''||mRaw==='') { alert('Bitte Datum und Uhrzeit eingeben.'); return; }
+
+  const h = parseInt(hRaw), m = parseInt(mRaw);
+  if (isNaN(h)||isNaN(m)||h<0||h>23||m<0||m>59) {
+    alert('Ungültige Zeitangabe.\nStunden: 00–23 · Minuten: 00–59'); return;
+  }
+
+  const [y,mo,da] = dateVal.split('-').map(Number);
+  const enteredOffset = getOffset(new Date(y, mo-1, da, h, m, 0));
+
+  let resultH, dateDiff=0, formula='';
+  const resultDate = new Date(y, mo-1, da);
+
+  if (dir==='local') {
+    resultH = h - enteredOffset;
+    if (resultH < 0) { resultH += 24; resultDate.setDate(resultDate.getDate()-1); dateDiff=-1; }
+    formula = pad(h)+':'+pad(m)+' Ortszeit − '+enteredOffset+'h = '+pad(resultH)+':'+pad(m)+' UTC';
+  } else {
+    resultH = h + enteredOffset;
+    if (resultH >= 24) { resultH -= 24; resultDate.setDate(resultDate.getDate()+1); dateDiff=+1; }
+    formula = pad(h)+':'+pad(m)+' UTC + '+enteredOffset+'h = '+pad(resultH)+':'+pad(m)+' Ortszeit';
+  }
+
+  document.getElementById('result-box').className = 'result-box show';
+  document.getElementById('result-time').textContent = pad(resultH)+':'+pad(m);
+  document.getElementById('result-date').textContent = fmtDate(resultDate);
+  document.getElementById('result-formula').textContent = formula;
+
+  const dw = document.getElementById('date-warn');
+  if (dateDiff===-1) {
+    dw.className='date-warn show';
+    dw.textContent='⚠ SAP-Datum ist der VORTAG – Achtung bei Rückverfolgung!';
+  } else if (dateDiff===+1) {
+    dw.className='date-warn show';
+    dw.textContent='⚠ Ortszeit-Datum ist der FOLGETAG – Achtung bei Rückverfolgung!';
+  } else {
+    dw.className='date-warn';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
