@@ -5,25 +5,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>SAP Zeitrechner – OSI Günzburg</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
 
 :root {
   --sans: 'IBM Plex Sans', sans-serif;
   --mono: 'IBM Plex Mono', monospace;
-  --bg: #F7F6F2;
-  --surface: #FFFFFF;
-  --border: #E2DDD6;
-  --border-strong: #C8C0B5;
-  --text: #1A1612;
-  --muted: #8C8078;
-  --summer: #C2410C;
-  --summer-light: #FFF7ED;
-  --summer-mid: #FB923C;
-  --winter: #1D4ED8;
+
+  /* Summer – amber/orange */
+  --summer:       #B45309;
+  --summer-dark:  #92400E;
+  --summer-light: #FFFBEB;
+  --summer-mid:   #FCD34D;
+  --summer-btn:   #D97706;
+
+  /* Winter – blue */
+  --winter:       #1D4ED8;
+  --winter-dark:  #1E3A8A;
   --winter-light: #EFF6FF;
-  --winter-mid: #60A5FA;
-  --correct: #15803D;
-  --correct-light: #F0FDF4;
+  --winter-mid:   #93C5FD;
+  --winter-btn:   #2563EB;
+
+  /* Neutrals */
+  --bg:           #F4F5F7;
+  --surface:      #FFFFFF;
+  --border:       #E0E4EC;
+  --border-strong:#B8C0D0;
+  --text:         #1A1E2E;
+  --muted:        #6B7A99;
+
+  /* Active season (set by JS) */
+  --s:            #1D4ED8;
+  --s-dark:       #1E3A8A;
+  --s-light:      #EFF6FF;
+  --s-mid:        #93C5FD;
+  --s-btn:        #2563EB;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -33,260 +48,266 @@ body {
   color: var(--text);
   font-family: var(--sans);
   min-height: 100vh;
-  padding: 0;
-}
-
-/* Grain texture overlay */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 100;
-  opacity: 0.4;
 }
 
 .app {
-  max-width: 480px;
+  max-width: 460px;
   margin: 0 auto;
-  padding: 24px 16px 60px;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Header */
+/* ── HEADER ── */
 .header {
+  background: var(--surface);
+  border-bottom: 3px solid var(--s);
+  padding: 16px 20px 14px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  gap: 12px;
 }
 
 .header-left h1 {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
   letter-spacing: -0.02em;
   line-height: 1.1;
 }
 
 .header-left p {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
   font-family: var(--mono);
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
-.season-badge {
+.osi-logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* ── BODY ── */
+.body {
+  flex: 1;
+  padding: 16px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── SEASON CARD ── */
+.season-card {
+  border-radius: 12px;
+  border: 2px solid var(--s-mid);
+  background: var(--s-light);
+  padding: 14px 16px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 500;
-  border: 1.5px solid;
-  white-space: nowrap;
+  justify-content: space-between;
+  gap: 12px;
+  transition: background 0.3s, border-color 0.3s;
 }
 
-.season-badge.summer {
-  background: var(--summer-light);
-  border-color: var(--summer-mid);
-  color: var(--summer);
+.season-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.season-badge.winter {
-  background: var(--winter-light);
-  border-color: var(--winter-mid);
-  color: var(--winter);
-}
-
-.season-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+.season-icon {
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
 }
 
-.summer .season-dot { background: var(--summer); }
-.winter .season-dot { background: var(--winter); }
-
-/* Live clock card */
-.clock-card {
-  border-radius: 12px;
-  border: 1.5px solid;
-  padding: 16px 20px;
-  margin-bottom: 16px;
-  display: grid;
-  grid-template-columns: 1fr 1px 1fr;
-  gap: 0;
+.season-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--s);
+  transition: color 0.3s;
 }
 
-.clock-card.summer { background: var(--summer-light); border-color: var(--summer-mid); }
-.clock-card.winter { background: var(--winter-light); border-color: var(--winter-mid); }
-
-.clock-divider {
-  background: var(--border-strong);
-  margin: 0 16px;
-}
-
-.clock-col { text-align: center; }
-
-.clock-label {
+.season-period {
   font-size: 10px;
   font-family: var(--mono);
   color: var(--muted);
+  margin-top: 2px;
+}
+
+.offset-badge {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--s);
+  color: white;
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+
+/* ── LIVE CLOCK ── */
+.clock-card {
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.clock-row {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  background: var(--s);
+  padding: 14px 0 12px;
+  transition: background 0.3s;
+}
+
+.clock-sep { background: rgba(255,255,255,0.25); margin: 0 2px; }
+
+.clock-col { text-align: center; }
+
+.clock-lbl {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: rgba(255,255,255,0.65);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 4px;
+  letter-spacing: 0.07em;
+  margin-bottom: 3px;
 }
 
 .clock-time {
-  font-size: 32px;
+  font-size: 28px;
   font-family: var(--mono);
   font-weight: 600;
-  letter-spacing: -0.02em;
+  color: white;
+  letter-spacing: -0.01em;
   line-height: 1;
 }
 
-.clock-card.summer .clock-time { color: var(--summer); }
-.clock-card.winter .clock-time { color: var(--winter); }
-
-.clock-date {
-  font-size: 11px;
-  color: var(--muted);
-  font-family: var(--mono);
-  margin-top: 3px;
+.clock-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 }
 
-/* Offset info */
-.offset-info {
+.clock-date-cell {
   text-align: center;
+  padding: 7px 4px;
+  font-size: 10px;
   font-family: var(--mono);
-  font-size: 12px;
   color: var(--muted);
-  margin-bottom: 24px;
-  padding: 8px;
-  border-radius: 6px;
-  background: var(--surface);
-  border: 1px solid var(--border);
 }
 
-.offset-info span {
-  font-weight: 600;
-}
+.clock-date-cell:first-child { border-right: 1px solid var(--border); }
 
-.offset-info.summer span { color: var(--summer); }
-.offset-info.winter span { color: var(--winter); }
-
-/* Converter */
-.converter {
+/* ── CONVERTER CARD ── */
+.card {
   background: var(--surface);
   border: 1.5px solid var(--border);
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
-.converter-tabs {
+.card-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
   border-bottom: 1.5px solid var(--border);
 }
 
 .conv-tab {
-  padding: 12px;
+  padding: 11px 8px;
   text-align: center;
   font-size: 12px;
   font-family: var(--mono);
+  font-weight: 500;
   color: var(--muted);
   cursor: pointer;
-  transition: all 0.15s;
   border: none;
   background: none;
-  font-weight: 500;
+  transition: all 0.15s;
 }
 
 .conv-tab:first-child { border-right: 1px solid var(--border); }
+.conv-tab.active { background: var(--s); color: white; transition: background 0.3s; }
 
-.conv-tab.active.summer { background: var(--summer-light); color: var(--summer); }
-.conv-tab.active.winter { background: var(--winter-light); color: var(--winter); }
+.card-body { padding: 18px 16px; }
 
-.converter-body { padding: 24px 20px; }
-
-.input-group { margin-bottom: 20px; }
-
-.input-label {
-  font-size: 11px;
+.field-label {
+  font-size: 10px;
   font-family: var(--mono);
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 8px;
+  letter-spacing: 0.07em;
+  margin-bottom: 6px;
   display: block;
 }
+
+.date-wrap { margin-bottom: 12px; }
+
+.date-wrap input[type="date"] {
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+
+.date-wrap input[type="date"]:focus { border-color: var(--s); }
 
 .time-inputs {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-bottom: 10px;
 }
 
-.time-field {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.time-field label {
-  font-size: 10px;
-  font-family: var(--mono);
-  color: var(--muted);
-  text-align: center;
-}
+.time-field { flex: 1; }
 
 .time-field input {
   width: 100%;
   text-align: center;
   font-family: var(--mono);
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 600;
-  padding: 10px 8px;
+  padding: 10px 6px;
   border-radius: 8px;
   border: 1.5px solid var(--border);
   background: var(--bg);
   color: var(--text);
-  -webkit-appearance: none;
-  appearance: none;
   outline: none;
   transition: border-color 0.15s;
+  -webkit-appearance: none;
 }
 
-.time-field input:focus { border-color: var(--border-strong); }
-.time-field input.summer:focus { border-color: var(--summer-mid); }
-.time-field input.winter:focus { border-color: var(--winter-mid); }
+.time-field input:focus { border-color: var(--s); }
 
-.time-separator {
+.time-sep {
   font-family: var(--mono);
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 600;
   color: var(--muted);
-  padding-bottom: 18px;
   flex-shrink: 0;
 }
 
-/* Stepper buttons */
-.stepper-row {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
+.steppers {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 14px;
 }
 
-.stepper-btn {
-  flex: 1;
-  padding: 8px;
+.step-btn {
+  padding: 8px 4px;
   border-radius: 6px;
   border: 1.5px solid var(--border);
   background: var(--bg);
@@ -299,171 +320,101 @@ body::after {
   text-align: center;
 }
 
-.stepper-btn:active { transform: scale(0.97); }
-.stepper-btn.summer:hover { border-color: var(--summer-mid); background: var(--summer-light); color: var(--summer); }
-.stepper-btn.winter:hover { border-color: var(--winter-mid); background: var(--winter-light); color: var(--winter); }
+.step-btn:hover { border-color: var(--s); color: var(--s); background: var(--s-light); }
+.step-btn:active { transform: scale(0.97); }
 
-/* Convert button */
 .convert-btn {
   width: 100%;
-  padding: 14px;
-  border-radius: 10px;
+  padding: 13px;
+  border-radius: 8px;
   border: none;
+  background: var(--s);
+  color: white;
   font-family: var(--mono);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background 0.3s;
   letter-spacing: 0.03em;
-  margin-bottom: 20px;
 }
 
-.convert-btn.summer { background: var(--summer); color: white; }
-.convert-btn.winter { background: var(--winter); color: white; }
-.convert-btn:hover { opacity: 0.88; }
+.convert-btn:hover { background: var(--s-dark); }
 .convert-btn:active { transform: scale(0.99); }
 
 /* Result */
 .result-box {
+  margin-top: 14px;
   border-radius: 10px;
-  padding: 18px;
-  border: 1.5px solid;
+  border: 2px solid var(--s-mid);
+  background: var(--s-light);
+  padding: 16px;
   display: none;
+  transition: background 0.3s, border-color 0.3s;
 }
 
 .result-box.show { display: block; }
-.result-box.summer { background: var(--summer-light); border-color: var(--summer-mid); }
-.result-box.winter { background: var(--winter-light); border-color: var(--winter-mid); }
 
-.result-label {
-  font-size: 11px;
+.result-lbl {
+  font-size: 10px;
   font-family: var(--mono);
-  color: var(--muted);
+  color: var(--s);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 6px;
+  letter-spacing: 0.07em;
+  margin-bottom: 4px;
 }
 
 .result-time {
-  font-size: 42px;
+  font-size: 44px;
   font-family: var(--mono);
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--s);
   letter-spacing: -0.02em;
   line-height: 1;
-  margin-bottom: 8px;
 }
 
-.result-time.summer { color: var(--summer); }
-.result-time.winter { color: var(--winter); }
+.result-date {
+  font-size: 14px;
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--s);
+  margin-top: 4px;
+  margin-bottom: 10px;
+}
 
 .result-formula {
-  font-size: 12px;
+  font-size: 11px;
   font-family: var(--mono);
   color: var(--muted);
   padding-top: 10px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--s-mid);
 }
 
-/* Next day warning */
-.next-day-warn {
+.date-warn {
   margin-top: 10px;
-  padding: 8px 10px;
+  padding: 8px 12px;
   border-radius: 6px;
   background: #FEF2F2;
-  border: 1px solid #FECACA;
+  border: 1.5px solid #EF4444;
   font-size: 12px;
   font-family: var(--mono);
   color: #DC2626;
+  font-weight: 600;
   display: none;
 }
 
-.next-day-warn.show { display: block; }
-
-/* Quick reference */
-.quick-ref {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-
-.quick-ref-header {
-  padding: 12px 18px;
-  border-bottom: 1px solid var(--border);
-  font-size: 11px;
-  font-family: var(--mono);
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.shift-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 18px;
-  border-bottom: 1px solid var(--border);
-  gap: 12px;
-}
-
-.shift-row:last-child { border-bottom: none; }
-
-.shift-name {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text);
-  flex: 1;
-}
-
-.shift-name small {
-  display: block;
-  font-size: 11px;
-  font-family: var(--mono);
-  color: var(--muted);
-  font-weight: 400;
-  margin-top: 1px;
-}
-
-.shift-times {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.shift-time-block {
-  text-align: center;
-}
-
-.shift-time-block .tl {
-  font-size: 10px;
-  font-family: var(--mono);
-  color: var(--muted);
-  margin-bottom: 2px;
-}
-
-.shift-time-block .tv {
-  font-family: var(--mono);
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.shift-arrow {
-  color: var(--muted);
-  font-size: 14px;
-}
+.date-warn.show { display: block; }
 
 /* Footer */
 .footer {
   text-align: center;
-  margin-top: 24px;
-  font-size: 11px;
+  padding: 10px 16px 16px;
+  font-size: 10px;
   font-family: var(--mono);
   color: var(--muted);
-  line-height: 1.6;
+  line-height: 1.7;
+  border-top: 1px solid var(--border);
 }
 
-/* Utility */
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 input[type=number] { -moz-appearance: textfield; }
@@ -476,323 +427,304 @@ input[type=number] { -moz-appearance: textfield; }
   <div class="header">
     <div class="header-left">
       <h1>SAP Zeitrechner</h1>
-      <p>OSI Günzburg · Werk 2005</p>
+      <p>Werk 2005 Günzburg &middot; QM-Abteilung</p>
     </div>
-    <div class="season-badge" id="season-badge">
-      <div class="season-dot"></div>
-      <span id="season-text">--</span>
-    </div>
+    <img class="osi-logo"
+         src="https://osi1955.github.io/Food-safety-/osi-group-logo-vector.png"
+         alt="OSI"
+         onerror="this.style.display='none'">
   </div>
 
-  <!-- LIVE CLOCK -->
-  <div class="clock-card" id="clock-card">
-    <div class="clock-col">
-      <div class="clock-label">Ortszeit</div>
-      <div class="clock-time" id="local-time">--:--</div>
-      <div class="clock-date" id="local-date">--</div>
-    </div>
-    <div class="clock-divider"></div>
-    <div class="clock-col">
-      <div class="clock-label">SAP (UTC)</div>
-      <div class="clock-time" id="utc-time">--:--</div>
-      <div class="clock-date" id="utc-date">--</div>
-    </div>
-  </div>
+  <div class="body">
 
-  <!-- OFFSET INFO -->
-  <div class="offset-info" id="offset-info">
-    Versatz: Ortszeit − <span id="offset-val">?</span>h = SAP-Zeit
-  </div>
-
-  <!-- CONVERTER -->
-  <div class="converter">
-    <div class="converter-tabs">
-      <button class="conv-tab active" id="tab-local" onclick="setDirection('local')">Ortszeit → SAP</button>
-      <button class="conv-tab" id="tab-sap" onclick="setDirection('sap')">SAP → Ortszeit</button>
+    <!-- SEASON CARD -->
+    <div class="season-card" id="season-card">
+      <div class="season-left">
+        <!-- Icon injected by JS -->
+        <div id="season-icon"></div>
+        <div>
+          <div class="season-name" id="s-name">--</div>
+          <div class="season-period" id="s-period">--</div>
+        </div>
+      </div>
+      <div class="offset-badge" id="s-badge">UTC+?</div>
     </div>
-    <div class="converter-body">
 
-      <div class="input-group">
-        <span class="input-label" id="input-label">Ortszeit eingeben</span>
+    <!-- LIVE CLOCK -->
+    <div class="clock-card">
+      <div class="clock-row" id="clock-row">
+        <div class="clock-col">
+          <div class="clock-lbl">Ortszeit</div>
+          <div class="clock-time" id="local-time">--:--:--</div>
+        </div>
+        <div class="clock-sep"></div>
+        <div class="clock-col">
+          <div class="clock-lbl">SAP (UTC)</div>
+          <div class="clock-time" id="utc-time">--:--:--</div>
+        </div>
+      </div>
+      <div class="clock-dates">
+        <div class="clock-date-cell" id="local-date">--</div>
+        <div class="clock-date-cell" id="utc-date">--</div>
+      </div>
+    </div>
+
+    <!-- CONVERTER -->
+    <div class="card">
+      <div class="card-tabs">
+        <button class="conv-tab active" id="tab-local" onclick="setDir('local')">Ortszeit &rarr; SAP</button>
+        <button class="conv-tab" id="tab-sap" onclick="setDir('sap')">SAP &rarr; Ortszeit</button>
+      </div>
+      <div class="card-body">
+
+        <div class="date-wrap">
+          <span class="field-label" id="date-lbl">Datum (Ortszeit)</span>
+          <input type="date" id="input-date" onchange="autoConvert()">
+        </div>
+
+        <span class="field-label" id="time-lbl">Uhrzeit eingeben</span>
         <div class="time-inputs">
           <div class="time-field">
-            <label>Stunden</label>
-            <input type="number" id="input-h" min="0" max="23" placeholder="HH" oninput="clampH(this)" onchange="autoConvert()">
+            <input type="number" id="input-h" min="0" max="23" placeholder="HH"
+              oninput="clampH(this)" onchange="autoConvert()">
           </div>
-          <div class="time-separator">:</div>
+          <div class="time-sep">:</div>
           <div class="time-field">
-            <label>Minuten</label>
-            <input type="number" id="input-m" min="0" max="59" placeholder="MM" oninput="clampM(this)" onchange="autoConvert()">
+            <input type="number" id="input-m" min="0" max="59" placeholder="MM"
+              oninput="clampM(this)" onchange="autoConvert()">
           </div>
         </div>
-        <div class="stepper-row">
-          <button class="stepper-btn" id="step-hm" onclick="step('h',-1)">H −1</button>
-          <button class="stepper-btn" id="step-hp" onclick="step('h',1)">H +1</button>
-          <button class="stepper-btn" id="step-mm" onclick="step('m',-15)">M −15</button>
-          <button class="stepper-btn" id="step-mp" onclick="step('m',15)">M +15</button>
+
+        <div class="steppers">
+          <button class="step-btn" onclick="step('h',-1)">H &minus;1</button>
+          <button class="step-btn" onclick="step('h', 1)">H +1</button>
+          <button class="step-btn" onclick="step('m',-15)">M &minus;15</button>
+          <button class="step-btn" onclick="step('m', 15)">M +15</button>
         </div>
+
+        <button class="convert-btn" id="conv-btn" onclick="convert()">Umrechnen</button>
+
+        <div class="result-box" id="result-box">
+          <div class="result-lbl" id="result-lbl">SAP-Zeit (UTC)</div>
+          <div class="result-time" id="result-time">--:--</div>
+          <div class="result-date" id="result-date"></div>
+          <div class="result-formula" id="result-formula"></div>
+          <div class="date-warn" id="date-warn"></div>
+        </div>
+
       </div>
-
-      <button class="convert-btn" id="convert-btn" onclick="convert()">Umrechnen</button>
-
-      <div class="result-box" id="result-box">
-        <div class="result-label" id="result-label">SAP-Zeit (UTC)</div>
-        <div class="result-time" id="result-time">--:--</div>
-        <div class="result-formula" id="result-formula"></div>
-      </div>
-
-      <div class="next-day-warn" id="next-day-warn">
-        ⚠ Ergebnis liegt am nächsten Tag (UTC)
-      </div>
-
     </div>
+
   </div>
 
-  <!-- SHIFT QUICK REFERENCE -->
-  <div class="quick-ref">
-    <div class="quick-ref-header">Schichtgrenzen – Schnellreferenz</div>
-    <div id="shift-rows"></div>
-  </div>
-
-  <div class="footer" id="footer-text"></div>
+  <div class="footer" id="footer"></div>
 
 </div>
 
 <script>
-// ─── TIMEZONE LOGIC ───────────────────────────────────────────────
-// Germany: CEST (UTC+2) last Sun March → last Sun October
-//          CET  (UTC+1) last Sun October → last Sun March
-// This is calculated precisely — no guessing.
-
-function lastSundayOf(year, month) {
-  // month: 0-indexed JS month
-  const d = new Date(year, month + 1, 0); // last day of month
-  d.setDate(d.getDate() - d.getDay()); // go back to last Sunday
+// ── PRECISE DST CALCULATION ──────────────────────────────────────
+function lastSunday(year, month) { // month 0-indexed
+  const d = new Date(year, month + 1, 0);
+  d.setDate(d.getDate() - d.getDay());
   return d;
 }
 
-function getGermanOffset(date) {
+function getOffset(date) {
   const y = date.getFullYear();
-  const springChange = lastSundayOf(y, 2); // March → CEST starts at 02:00 local
-  const fallChange   = lastSundayOf(y, 9); // October → CET starts at 03:00 local
-  springChange.setHours(2, 0, 0, 0);
-  fallChange.setHours(3, 0, 0, 0);
-  if (date >= springChange && date < fallChange) return 2; // CEST
-  return 1; // CET
+  const spring = lastSunday(y, 2); spring.setHours(2,0,0,0); // CEST starts
+  const fall   = lastSunday(y, 9); fall.setHours(3,0,0,0);   // CET starts
+  return (date >= spring && date < fall) ? 2 : 1;
 }
 
-function isSummer(date) {
-  return getGermanOffset(date) === 2;
-}
+// ── SVG ICONS ───────────────────────────────────────────────────
+const SUN_SVG = `<svg class="season-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="20" cy="20" r="8" fill="#D97706" opacity="0.9"/>
+  <g stroke="#D97706" stroke-width="2.2" stroke-linecap="round" opacity="0.7">
+    <line x1="20" y1="4"  x2="20" y2="8"/>
+    <line x1="20" y1="32" x2="20" y2="36"/>
+    <line x1="4"  y1="20" x2="8"  y2="20"/>
+    <line x1="32" y1="20" x2="36" y2="20"/>
+    <line x1="8.5"  y1="8.5"  x2="11.5" y2="11.5"/>
+    <line x1="28.5" y1="28.5" x2="31.5" y2="31.5"/>
+    <line x1="31.5" y1="8.5"  x2="28.5" y2="11.5"/>
+    <line x1="11.5" y1="28.5" x2="8.5"  y2="31.5"/>
+  </g>
+</svg>`;
 
-// ─── STATE ───────────────────────────────────────────────────────
-let direction = 'local'; // 'local' → SAP, or 'sap' → local
-let currentOffset = 2;
-let season = 'summer';
+const SNOW_SVG = `<svg class="season-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="#1D4ED8" stroke-width="2.2" stroke-linecap="round" opacity="0.85">
+    <line x1="20" y1="4"  x2="20" y2="36"/>
+    <line x1="4"  y1="20" x2="36" y2="20"/>
+    <line x1="7"  y1="7"  x2="33" y2="33"/>
+    <line x1="33" y1="7"  x2="7"  y2="33"/>
+    <!-- branch tips -->
+    <line x1="20" y1="4"  x2="16" y2="8"/><line x1="20" y1="4"  x2="24" y2="8"/>
+    <line x1="20" y1="36" x2="16" y2="32"/><line x1="20" y1="36" x2="24" y2="32"/>
+    <line x1="4"  y1="20" x2="8"  y2="16"/><line x1="4"  y1="20" x2="8"  y2="24"/>
+    <line x1="36" y1="20" x2="32" y2="16"/><line x1="36" y1="20" x2="32" y2="24"/>
+  </g>
+  <circle cx="20" cy="20" r="3" fill="#1D4ED8" opacity="0.9"/>
+</svg>`;
 
-// ─── SEASON DETECTION & UI INIT ──────────────────────────────────
-function init() {
-  const now = new Date();
-  currentOffset = getGermanOffset(now);
-  season = currentOffset === 2 ? 'summer' : 'winter';
+// ── STATE ────────────────────────────────────────────────────────
+let dir = 'local';
+let offset = 2;
+let isSummer = true;
 
-  // Badge
-  const badge = document.getElementById('season-badge');
-  badge.className = 'season-badge ' + season;
-  document.getElementById('season-text').textContent =
-    season === 'summer' ? 'MESZ · UTC+2' : 'MEZ · UTC+1';
-
-  // Offset info
-  const oi = document.getElementById('offset-info');
-  oi.className = 'offset-info ' + season;
-  document.getElementById('offset-val').textContent = currentOffset;
-
-  // Input colours
-  document.getElementById('input-h').className = season;
-  document.getElementById('input-m').className = season;
-
-  // Buttons
-  ['step-hm','step-hp','step-mm','step-mp'].forEach(id => {
-    document.getElementById(id).className = 'stepper-btn ' + season;
-  });
-  document.getElementById('convert-btn').className = 'convert-btn ' + season;
-
-  // Tabs
-  document.getElementById('tab-local').className = 'conv-tab active ' + season;
-  document.getElementById('tab-sap').className = 'conv-tab ' + season;
-
-  // Clock card
-  document.getElementById('clock-card').className = 'clock-card ' + season;
-
-  renderShifts();
-  updateClock();
-  setInterval(updateClock, 1000);
-
-  // Footer
-  document.getElementById('footer-text').textContent =
-    'OSI Food Solutions GmbH · QM Werk 2005 · ' +
-    (season === 'summer'
-      ? 'Sommerzeit (MESZ): letzter So. März – letzter So. Oktober'
-      : 'Winterzeit (MEZ): letzter So. Oktober – letzter So. März');
-}
-
-// ─── LIVE CLOCK ──────────────────────────────────────────────────
 function pad(n) { return String(n).padStart(2,'0'); }
 
+function todayISO() {
+  const n = new Date();
+  return n.getFullYear() + '-' + pad(n.getMonth()+1) + '-' + pad(n.getDate());
+}
+
+const DAYS = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+function fmtDate(d) {
+  return DAYS[d.getDay()] + ', ' + pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.' + d.getFullYear();
+}
+function fmtDateUTC(d) {
+  return DAYS[d.getUTCDay()] + ', ' + pad(d.getUTCDate()) + '.' + pad(d.getUTCMonth()+1) + '.' + d.getUTCFullYear();
+}
+
+// ── APPLY SEASON THEME ───────────────────────────────────────────
+function applyTheme() {
+  const root = document.documentElement;
+  if (isSummer) {
+    root.style.setProperty('--s',       'var(--summer)');
+    root.style.setProperty('--s-dark',  'var(--summer-dark)');
+    root.style.setProperty('--s-light', 'var(--summer-light)');
+    root.style.setProperty('--s-mid',   'var(--summer-mid)');
+    root.style.setProperty('--s-btn',   'var(--summer-btn)');
+  } else {
+    root.style.setProperty('--s',       'var(--winter)');
+    root.style.setProperty('--s-dark',  'var(--winter-dark)');
+    root.style.setProperty('--s-light', 'var(--winter-light)');
+    root.style.setProperty('--s-mid',   'var(--winter-mid)');
+    root.style.setProperty('--s-btn',   'var(--winter-btn)');
+  }
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+function init() {
+  const now = new Date();
+  offset = getOffset(now);
+  isSummer = offset === 2;
+  applyTheme();
+
+  // Season card
+  document.getElementById('season-icon').innerHTML = isSummer ? SUN_SVG : SNOW_SVG;
+  document.getElementById('s-name').textContent =
+    isSummer ? 'Sommerzeit (MESZ)' : 'Winterzeit (MEZ)';
+  document.getElementById('s-period').textContent =
+    isSummer
+      ? 'Letzter So. März – letzter So. Oktober'
+      : 'Letzter So. Oktober – letzter So. März';
+  document.getElementById('s-badge').textContent = 'UTC+' + offset;
+
+  // Pre-fill date
+  document.getElementById('input-date').value = todayISO();
+
+  // Footer
+  document.getElementById('footer').textContent =
+    'OSI Food Solutions GmbH · QM Werk 2005 · ' +
+    (isSummer
+      ? 'MESZ (UTC+2): letzter So. März – letzter So. Okt.'
+      : 'MEZ (UTC+1): letzter So. Okt. – letzter So. März');
+
+  updateClock();
+  setInterval(updateClock, 1000);
+}
+
+// ── CLOCK ────────────────────────────────────────────────────────
 function updateClock() {
   const now = new Date();
-  const days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
-
   document.getElementById('local-time').textContent =
-    pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
-  document.getElementById('local-date').textContent =
-    days[now.getDay()] + ' ' + now.toLocaleDateString('de-DE');
-
+    pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
   document.getElementById('utc-time').textContent =
-    pad(now.getUTCHours()) + ':' + pad(now.getUTCMinutes()) + ':' + pad(now.getUTCSeconds());
-  document.getElementById('utc-date').textContent =
-    days[now.getUTCDay()] + ' ' + new Date(now.getTime()).toLocaleDateString('de-DE', {timeZone:'UTC'});
+    pad(now.getUTCHours())+':'+pad(now.getUTCMinutes())+':'+pad(now.getUTCSeconds());
+  document.getElementById('local-date').textContent = fmtDate(now);
+  document.getElementById('utc-date').textContent = 'UTC · ' + fmtDateUTC(now);
 }
 
-// ─── DIRECTION TOGGLE ────────────────────────────────────────────
-function setDirection(dir) {
-  direction = dir;
-  document.getElementById('tab-local').className =
-    'conv-tab ' + (dir === 'local' ? 'active ' : '') + season;
-  document.getElementById('tab-sap').className =
-    'conv-tab ' + (dir === 'sap' ? 'active ' : '') + season;
-
-  document.getElementById('input-label').textContent =
-    dir === 'local' ? 'Ortszeit eingeben' : 'SAP-Zeit (UTC) eingeben';
-  document.getElementById('result-label').textContent =
-    dir === 'local' ? 'SAP-Zeit (UTC)' : 'Ortszeit Günzburg';
-
-  // Clear
+// ── DIRECTION ────────────────────────────────────────────────────
+function setDir(d) {
+  dir = d;
+  document.getElementById('tab-local').className = 'conv-tab' + (d==='local'?' active':'');
+  document.getElementById('tab-sap').className   = 'conv-tab' + (d==='sap'  ?' active':'');
+  document.getElementById('date-lbl').textContent = d==='local' ? 'Datum (Ortszeit)' : 'Datum (SAP / UTC)';
+  document.getElementById('time-lbl').textContent = d==='local' ? 'Ortszeit eingeben' : 'SAP-Zeit (UTC) eingeben';
+  document.getElementById('result-lbl').textContent = d==='local' ? 'SAP-Zeit (UTC)' : 'Ortszeit Günzburg';
+  document.getElementById('result-box').className = 'result-box';
   document.getElementById('input-h').value = '';
   document.getElementById('input-m').value = '';
-  document.getElementById('result-box').className = 'result-box';
-  document.getElementById('next-day-warn').className = 'next-day-warn';
+  document.getElementById('input-date').value = todayISO();
 }
 
-// ─── INPUT HELPERS ───────────────────────────────────────────────
-function clampH(el) {
-  let v = parseInt(el.value);
-  if (isNaN(v)) return;
-  if (v < 0) el.value = 0;
-  if (v > 23) el.value = 23;
-}
-
-function clampM(el) {
-  let v = parseInt(el.value);
-  if (isNaN(v)) return;
-  if (v < 0) el.value = 0;
-  if (v > 59) el.value = 59;
-}
+// ── INPUT HELPERS ────────────────────────────────────────────────
+function clampH(el) { let v=parseInt(el.value); if(!isNaN(v)) el.value=Math.max(0,Math.min(23,v)); }
+function clampM(el) { let v=parseInt(el.value); if(!isNaN(v)) el.value=Math.max(0,Math.min(59,v)); }
 
 function step(field, delta) {
   const el = document.getElementById('input-' + field);
   let v = parseInt(el.value) || 0;
-  if (field === 'h') {
-    v = ((v + delta) + 24) % 24;
-    el.value = pad(v);
-  } else {
-    v = v + delta;
-    if (v < 0) v = 45;
-    if (v > 59) v = 0;
-    el.value = pad(v);
-  }
+  if (field==='h') { v=((v+delta)+24)%24; }
+  else { v+=delta; if(v<0)v=45; if(v>59)v=0; }
+  el.value = pad(v);
   autoConvert();
 }
 
 function autoConvert() {
-  const h = document.getElementById('input-h').value;
-  const m = document.getElementById('input-m').value;
-  if (h !== '' && m !== '') convert();
+  const h=document.getElementById('input-h').value;
+  const m=document.getElementById('input-m').value;
+  const dt=document.getElementById('input-date').value;
+  if(h!==''&&m!==''&&dt) convert();
 }
 
-// ─── CONVERSION ──────────────────────────────────────────────────
+// ── CONVERSION ───────────────────────────────────────────────────
 function convert() {
-  const hRaw = document.getElementById('input-h').value;
-  const mRaw = document.getElementById('input-m').value;
+  const dateVal = document.getElementById('input-date').value;
+  const hRaw    = document.getElementById('input-h').value;
+  const mRaw    = document.getElementById('input-m').value;
 
-  if (hRaw === '' || mRaw === '') {
-    alert('Bitte Stunden und Minuten eingeben.');
-    return;
+  if (!dateVal||hRaw===''||mRaw==='') { alert('Bitte Datum und Uhrzeit eingeben.'); return; }
+
+  const h = parseInt(hRaw), m = parseInt(mRaw);
+  if (isNaN(h)||isNaN(m)||h<0||h>23||m<0||m>59) {
+    alert('Ungültige Zeitangabe.\nStunden: 00–23 · Minuten: 00–59'); return;
   }
 
-  const h = parseInt(hRaw);
-  const m = parseInt(mRaw);
+  const [y,mo,da] = dateVal.split('-').map(Number);
+  const enteredOffset = getOffset(new Date(y, mo-1, da, h, m, 0));
 
-  if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) {
-    alert('Ungültige Zeitangabe. Stunden: 00–23, Minuten: 00–59.');
-    return;
-  }
+  let resultH, dateDiff=0, formula='';
+  const resultDate = new Date(y, mo-1, da);
 
-  let resultH, nextDay = false, formula = '';
-
-  if (direction === 'local') {
-    // Local → UTC: subtract offset
-    resultH = h - currentOffset;
-    if (resultH < 0) {
-      resultH += 24;
-      nextDay = false; // UTC is previous date but for SAP entry clarity we just show the time
-      // Actually show next-day warning if needed for overnight entries
-    }
-    formula = `${pad(h)}:${pad(m)} − ${currentOffset}h = ${pad(resultH)}:${pad(m)} UTC`;
+  if (dir==='local') {
+    resultH = h - enteredOffset;
+    if (resultH < 0) { resultH += 24; resultDate.setDate(resultDate.getDate()-1); dateDiff=-1; }
+    formula = pad(h)+':'+pad(m)+' Ortszeit − '+enteredOffset+'h = '+pad(resultH)+':'+pad(m)+' UTC';
   } else {
-    // SAP UTC → Local: add offset
-    resultH = h + currentOffset;
-    if (resultH >= 24) {
-      resultH -= 24;
-      nextDay = true;
-    }
-    formula = `${pad(h)}:${pad(m)} UTC + ${currentOffset}h = ${pad(resultH)}:${pad(m)} Ortszeit`;
+    resultH = h + enteredOffset;
+    if (resultH >= 24) { resultH -= 24; resultDate.setDate(resultDate.getDate()+1); dateDiff=+1; }
+    formula = pad(h)+':'+pad(m)+' UTC + '+enteredOffset+'h = '+pad(resultH)+':'+pad(m)+' Ortszeit';
   }
 
-  // Show result
-  const rb = document.getElementById('result-box');
-  rb.className = 'result-box show ' + season;
-  document.getElementById('result-time').textContent = pad(resultH) + ':' + pad(m);
-  document.getElementById('result-time').className = 'result-time ' + season;
+  document.getElementById('result-box').className = 'result-box show';
+  document.getElementById('result-time').textContent = pad(resultH)+':'+pad(m);
+  document.getElementById('result-date').textContent = fmtDate(resultDate);
   document.getElementById('result-formula').textContent = formula;
 
-  const ndw = document.getElementById('next-day-warn');
-  ndw.className = 'next-day-warn' + (nextDay ? ' show' : '');
-}
-
-// ─── SHIFT REFERENCE TABLE ───────────────────────────────────────
-function renderShifts() {
-  const shifts = [
-    { name: 'Frühschicht',        sub: 'Early Shift',    localStart: [5,30],  localEnd: [14,0] },
-    { name: 'Spätschicht',        sub: 'Late Shift',     localStart: [14,0],  localEnd: [23,0] },
-    { name: 'Reinigungsschicht',  sub: 'Cleaning Shift', localStart: [23,0],  localEnd: [5,30] },
-  ];
-
-  function toUTC(h, m) {
-    let uh = (h - currentOffset + 24) % 24;
-    return pad(uh) + ':' + pad(m);
+  const dw = document.getElementById('date-warn');
+  if (dateDiff===-1) {
+    dw.className='date-warn show';
+    dw.textContent='⚠ SAP-Datum ist der VORTAG – Achtung bei Rückverfolgung!';
+  } else if (dateDiff===+1) {
+    dw.className='date-warn show';
+    dw.textContent='⚠ Ortszeit-Datum ist der FOLGETAG – Achtung bei Rückverfolgung!';
+  } else {
+    dw.className='date-warn';
   }
-
-  const container = document.getElementById('shift-rows');
-  container.innerHTML = shifts.map(s => `
-    <div class="shift-row">
-      <div class="shift-name">
-        ${s.name}
-        <small>${s.sub}</small>
-      </div>
-      <div class="shift-times">
-        <div class="shift-time-block">
-          <div class="tl">Ortszeit</div>
-          <div class="tv">${pad(s.localStart[0])}:${pad(s.localStart[1])} – ${pad(s.localEnd[0])}:${pad(s.localEnd[1])}</div>
-        </div>
-        <div class="shift-arrow">→</div>
-        <div class="shift-time-block">
-          <div class="tl">SAP (UTC)</div>
-          <div class="tv" style="color:var(--${season})">${toUTC(s.localStart[0], s.localStart[1])} – ${toUTC(s.localEnd[0], s.localEnd[1])}</div>
-        </div>
-      </div>
-    </div>
-  `).join('');
 }
 
 init();
